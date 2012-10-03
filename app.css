@@ -1,0 +1,10 @@
+.timebox-list .x-boundlist-item {
+    overflow-x: hidden !important;
+}
+.rally-user-combobox {
+    border: none;
+}
+
+.filter-container .x-form-item-label {
+    font-weight:bold;
+}

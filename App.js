@@ -1,4 +1,4 @@
-Ext.define('CustomApp', {
+Ext.define('TasksApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
 
@@ -54,6 +54,16 @@ Ext.define('CustomApp', {
         this._addFilter(ownerFilter);
         this._filterGrid();
     },
+    _resetFilters: function() {
+        this._activeFilters = [this._activeFilters[0]];
+        this._clearFilterInputs();
+        this._filterGrid();
+    },
+    _clearFilterInputs: function() {
+        Ext.getCmp('ownerComboBox').reset();
+        Ext.getCmp('iterationComboBox').reset();
+        Ext.getCmp('releaseComboBox').reset();
+    },
     launch: function launch() {
         Rally.data.ModelFactory.getModel({
             type: 'Task',
@@ -61,42 +71,71 @@ Ext.define('CustomApp', {
             success: function(model) {
                 var project = Rally.environment.getContext().getProject().ObjectID;
 
+                var me = this;
+                var clearFiltersStoreConfig = {
+                  listeners:{
+                   load:function(){
+                    me._clearFilterInputs();   
+                   }
+                  }
+                };
                 var filterContainer = {
                     width: 1000,
                     xtype: 'container',
+                    cls: 'filter-container',
                     layout: {
                         type: 'hbox'
                     },
                     items: [{
+                        xtype: 'container',
+                        items: [{
+                            xtype: 'button',
+                            text: 'Reset Filters',
+                            handler: Ext.bind(this._resetFilters, this)
+                        }],
+                        flex: 1
+                    }, , {
+                        id: 'releaseComboBox',
                         xtype: 'rallyreleasecombobox',
                         fieldLabel: "Release",
-                        labelWidth:45,
-                        listeners: {
-                            select: Ext.bind(this._releaseSelected, this)
-                        },
-                        flex:1
-                    }, {
-                        xtype: 'rallyiterationcombobox',
-                        fieldLabel: "Iteration",
-                        labelWidth:45,
+                        autoSelect: false,
+                        labelWidth: 45,
                         listConfig: {
                             minWidth: 90,
                             width: 90,
                             itemTpl: new Ext.XTemplate('<div class="timebox-name<tpl if="isSelected"> timebox-item-selected</tpl>">{formattedName}</div>')
                         },
+                        storeConfig: clearFiltersStoreConfig,
+                        listeners: {
+                            select: Ext.bind(this._releaseSelected, this)
+                        },
+                        flex: 1
+                    }, {
+                        id: 'iterationComboBox',
+                        xtype: 'rallyiterationcombobox',
+                        fieldLabel: "Iteration",
+                        labelWidth: 45,
+                        listConfig: {
+                            minWidth: 90,
+                            width: 90,
+                            itemTpl: new Ext.XTemplate('<div class="timebox-name<tpl if="isSelected"> timebox-item-selected</tpl>">{formattedName}</div>')
+                        },
+                        storeConfig: clearFiltersStoreConfig,
                         listeners: {
                             select: Ext.bind(this._iterationSelected, this)
                         },
-                        flex:1
+                        flex: 1
                     }, {
+                        id: 'ownerComboBox',
                         labelWidth: 45,
                         xtype: 'rallyusercombobox',
                         fieldLabel: 'Owner',
                         project: '/project/' + project,
+                        storeConfig: clearFiltersStoreConfig,
                         listeners: {
                             select: Ext.bind(this._ownerSelected, this)
                         },
-                        flex:1
+                        flex: 1
                     }]
                 };
 
@@ -114,9 +153,7 @@ Ext.define('CustomApp', {
                         },
                         filters: this._activeFilters
                     }
-
                 });
-
             }
         });
     },

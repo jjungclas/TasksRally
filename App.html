@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NewApp</title>
+
+    <script type="text/javascript" src="/apps/2.0p/sdk.js"></script>
+
+    <script type="text/javascript">
+        Rally.onReady(function() {
+            
+            var detailLink = function (val, ref) {
+            	//console.log("Detail Link", val, _, rec);
+            
+            	//var link = new Ext.Template("<a href='{0}' target='_top'>{1}</a>");
+            
+            	var link = new Rally.util.DetailLinkBuilder().build(val, ref);
+            	link = link.replace(/onmouseover=".*"/g, '');
+            	link = link.replace('href="', 'href="/');
+            	link = link.replace('>', 'target="_top">');
+            
+            	console.log(link);
+            
+            	return link;
+            	//return link.applyTemplate([rec.data.WorkProductParentRef, val]);
+            };
+            
+            Ext.define('CustomApp', {
+                extend: 'Rally.app.App',
+                componentCls: 'app',
+            
+            	launch: function () {
+            		var ws = this.getContext().getWorkspace().ObjectID,
+            			that = this;
+            
+            		Ext.create('Rally.data.WsapiDataStore', {
+            			model: 'UserStory',
+            			autoLoad: true,
+            			listeners: {
+            				load: function (storyStore, storyData) {
+            					Ext.create('Rally.data.WsapiDataStore', {
+            						model: 'Task',
+            						autoLoad: true,
+            						limit: Infinity,
+            						context: {
+            							projectScopeUp: false,
+            							projectScopeDown: true
+            						},
+            /*
+            						filters: [
+            							{
+            								property: 'State',
+            								operator: '<',
+            								value: 'Completed'
+            								property: 'Project.ObjectID',
+            								operator: '=',
+            								value: this.getContext().getProject().ObjectID
+            							}
+            						],
+            */
+            						listeners: {
+            							load: function (taskStore, taskData) {
+            								Rally.data.ModelFactory.getModel({
+            								    type: 'Task',
+            									limit: Infinity,
+            								    context: {
+            								        workspace: "/workspace/" + ws,
+            										projectScopeUp: false,
+            										projectScopeDown: true
+            								    },
+            								    success: function(model) {
+            										that.onDataLoadedTask(storyData, taskData, model);
+            								    }
+            								});
+            							},
+            							scope: this
+            						}
+            					});
+            				},
+            				scope: this
+            			}
+            		});
+            	},
+            
+            
+            	onDataLoadedTask: function (storyData, taskData, model) {
+            		console.log(storyData);
+            		console.log(taskData);
+            		console.log(model.fields);
+            
+            		var storyParents = {},
+            			records = [],
+            			rec,
+            			columns = [],
+            			k;
+            
+            		Ext.Array.each(storyData, function (record) {
+            			if (!Ext.isEmpty(record.get("Parent"))) {
+            				storyParents[record.get("_ref")] = {
+            					name: record.get("Parent")._refObjectName,
+            					ref: record.get("Parent")._ref
+            				};
+            			}
+            		});
+            
+            		console.log("Story Parents", storyParents);
+            
+            		Ext.Array.each(taskData, function (record) {
+            			var k,
+            				c,
+            				b;
+            
+            			rec = record.data;
+            			rec.WorkProductName = "None";
+            			if (!Ext.isEmpty(record.get('Owner')._refObjectName)) {
+							rec.WorkProductName = record.get('Owner')._refObjectName;
+						}
+            			rec.WorkProductName = record.get('WorkProduct')._refObjectName;
+            			var jjj  = storyParents[record.get('WorkProduct')._ref];
+            			if (!Ext.isEmpty(jjj)) {
+            				rec.WorkProductParent    = storyParents[record.get('WorkProduct')._ref].name;
+            				rec.WorkProductParentRef = storyParents[record.get('WorkProduct')._ref].ref;
+            			} else {
+            				rec.WorkProductParent = "";
+            				rec.WorkProductParentRef = "";
+            			}
+            
+            			console.log("Parent?", record.get("Name"), record.get('WorkProduct')._ref, storyParents[record.get('WorkProduct')._ref]);
+            			if (!Ext.isEmpty(rec.WorkProductParent)) {
+            				console.log("Found parent", rec);
+            			} 
+            
+            			records.push(rec);
+            		});
+            
+            
+            		this.add({
+            			xtype: 'rallygrid',
+            			store: Ext.create('Rally.data.custom.Store', {
+            				data: records,
+            				pageSize: 25
+            			}),
+            			columnCfgs: [
+            				{
+            					text: 'Formatted ID',
+            					dataIndex: 'FormattedID',
+            					renderer: function (val, _, rec) {
+            								return detailLink(val, rec.data._ref);
+            							}
+            				},
+            				{
+            					text: 'Task Name',
+            					dataIndex: 'Name',
+            					flex: 1
+            				},
+            				{
+            					text: 'Work Product Parent',
+            					dataIndex: 'WorkProductParent',
+            					flex: 1
+            				},
+            				{
+            					text: 'Work Product',
+            					dataIndex: 'WorkProductName',
+            					flex: 1
+            				}
+            			]
+            		});
+            	}
+            });
+            Rally.launchApp('CustomApp', {
+                name: 'NewApp'
+            });
+        });
+    </script>
+
+    <style type="text/css">
+        .app {
+             /* Add app styles here */
+        }
+    </style>
+</head>
+<body></body>
+</html>

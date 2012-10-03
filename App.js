@@ -2,15 +2,13 @@ Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
 
-    _activeFilters: [
-//        {
-//        property: 'State',
-//        operator: '<',
-//        value: 'Completed'
-//    }
-    ],
+    _activeFilters: [{
+        property: 'State',
+        operator: '<',
+        value: 'Completed'
+    }],
     _filterGrid: function() {
-        this.grid.store.clearFilter();
+        this.grid.store.clearFilter(true);
         this.grid.store.filter(this._activeFilters);
     },
     _addFilter: function(filter) {
@@ -38,13 +36,22 @@ Ext.define('CustomApp', {
         this._addFilter(releaseFilter);
         this._filterGrid();
     },
-    _iterationSelected: function(comboBox,records){
+    _iterationSelected: function(comboBox, records) {
         var iterationFilter = {
             property: 'Iteration',
             value: records[0].get("_ref")
         };
 
         this._addFilter(iterationFilter);
+        this._filterGrid();
+    },
+    _ownerSelected: function(comboBox, records) {
+        var ownerFilter = {
+            property: 'Owner',
+            value: records[0].get("_ref")
+        };
+
+        this._addFilter(ownerFilter);
         this._filterGrid();
     },
     launch: function launch() {
@@ -55,6 +62,7 @@ Ext.define('CustomApp', {
                 var project = Rally.environment.getContext().getProject().ObjectID;
 
                 var filterContainer = {
+                    width: 1000,
                     xtype: 'container',
                     layout: {
                         type: 'hbox'
@@ -62,19 +70,33 @@ Ext.define('CustomApp', {
                     items: [{
                         xtype: 'rallyreleasecombobox',
                         fieldLabel: "Release",
+                        labelWidth:45,
                         listeners: {
                             select: Ext.bind(this._releaseSelected, this)
-                        }
+                        },
+                        flex:1
                     }, {
                         xtype: 'rallyiterationcombobox',
                         fieldLabel: "Iteration",
+                        labelWidth:45,
+                        listConfig: {
+                            minWidth: 90,
+                            width: 90,
+                            itemTpl: new Ext.XTemplate('<div class="timebox-name<tpl if="isSelected"> timebox-item-selected</tpl>">{formattedName}</div>')
+                        },
                         listeners: {
                             select: Ext.bind(this._iterationSelected, this)
-                        }
+                        },
+                        flex:1
                     }, {
+                        labelWidth: 45,
                         xtype: 'rallyusercombobox',
                         fieldLabel: 'Owner',
-                        project: '/project/' + project
+                        project: '/project/' + project,
+                        listeners: {
+                            select: Ext.bind(this._ownerSelected, this)
+                        },
+                        flex:1
                     }]
                 };
 

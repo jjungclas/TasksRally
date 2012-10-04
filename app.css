@@ -10,7 +10,7 @@
 .clear-button {
     background-color: transparent;
     top: 2px !important;
-    background: url(img/x_alt_16x16.png) no-repeat left;
+    background:  url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAHlJREFUeNpiYMAECUC8H4j/o+H9UDmcQAGIz2PRiI7PQ9ViaH5PhGYYfo9uyHkSNCO7BO5ndNMbsGhowOJKcJjsx6IQ3WBY4DVgCViszktAMiQBh0thGKcfE9CiFqs6JgYqAIq9QHEgUhyNFCckqiRlijMT2dkZIMAAQSOoo+oDrMMAAAAASUVORK5CYII=') no-repeat left;
     border: none;
 }
 .owner-container .clear-button {

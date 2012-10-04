@@ -149,6 +149,24 @@ Ext.define('TasksApp', {
                         flex: 1
                     }, {
                         xtype: 'container',
+                        cls: 'owner-container',
+                        layout: 'hbox',
+                        items: [{
+                            id: 'ownerComboBox',
+                            labelWidth: 45,
+                            clearCls: 'tes-test-test',
+                            xtype: 'rallyusercombobox',
+                            fieldLabel: 'Owner',
+                            project: '/project/' + project,
+                            storeConfig: clearFiltersStoreConfig,
+                            listeners: {
+                                select: Ext.bind(this._optionSelected("Owner"), this)
+                            }
+                        },
+                        this._makeClearButton('ownerComboBox', 'Owner')],
+                        flex: 1
+                    }, {
+                        xtype: 'container',
                         layout: 'hbox',
                         items: [{
                             id: 'releaseComboBox',
@@ -189,24 +207,6 @@ Ext.define('TasksApp', {
                             }
                         },
                         this._makeClearButton('iterationComboBox', 'Iteration')],
-                        flex: 1
-                    }, {
-                        xtype: 'container',
-                        cls: 'owner-container',
-                        layout: 'hbox',
-                        items: [{
-                            id: 'ownerComboBox',
-                            labelWidth: 45,
-                            clearCls: 'tes-test-test',
-                            xtype: 'rallyusercombobox',
-                            fieldLabel: 'Owner',
-                            project: '/project/' + project,
-                            storeConfig: clearFiltersStoreConfig,
-                            listeners: {
-                                select: Ext.bind(this._optionSelected("Owner"), this)
-                            }
-                        },
-                        this._makeClearButton('ownerComboBox', 'Owner')],
                         flex: 1
                     }]
                 };

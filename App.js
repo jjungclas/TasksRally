@@ -10,6 +10,57 @@ Ext.define('TasksApp', {
     _filterGrid: function() {
         this.grid.store.clearFilter(true);
         this.grid.store.filter(this._activeFilters);
+        this._saveFilters();
+    },
+    _loadLastFilters: function() {
+        Rally.data.PreferenceManager.load({
+            filterByUser: true,
+            appID: this.getContext().get('appID'),
+            success: function(settings) {
+                var filters = JSON.parse(settings['task.filters']);
+                this._activeFilters = filters;
+                this._filterGrid();
+                this._setFilterValuesOnComboBoxes();
+            },
+            scope: this
+        });
+    },
+    _saveFilters: function() {
+        var taskFilters = JSON.stringify(this._activeFilters);
+        Rally.data.PreferenceManager.update({
+            appID: this.getContext().get('appID'),
+            filterByUser: true,
+            settings: {
+                'task.filters': taskFilters
+            },
+            scope: this
+        });
+    },
+    _setFilterValuesOnComboBoxes: function() {
+        var ownerFilter = this._getFilterByProperty("Owner");
+        var iterationFilter = this._getFilterByProperty("Iteration");
+        var releaseFilter = this._getFilterByProperty("Release");
+
+        if (ownerFilter) {
+            Ext.getCmp('ownerComboBox').setValue(ownerFilter.value);
+        }
+        if (iterationFilter) {
+            Ext.getCmp('iterationComboBox').setValue(iterationFilter.value);
+        }
+
+        if (releaseFilter) {
+            Ext.getCmp('releaseComboBox').setValue(releaseFilter.value);
+        }
+    },
+    _getFilterByProperty: function(property) {
+        var matchedFilter = null;
+        Ext.Array.forEach(this._activeFilters, function(filter) {
+            if (filter.property === property) {
+                matchedFilter = filter;
+            }
+        });
+
+        return matchedFilter;
     },
     _addFilter: function(filter) {
         var existingIndex = -1;
@@ -27,32 +78,16 @@ Ext.define('TasksApp', {
         //always add new filter
         this._activeFilters.push(filter);
     },
-    _releaseSelected: function(comboBox, records) {
-        var releaseFilter = {
-            property: 'Release',
-            value: records[0].get("_ref")
-        };
+    _optionSelected: function(propertyName) {
+        return function(comboBox, records) {
+            var filter = {
+                property: propertyName,
+                value: records[0].get("_ref")
+            };
 
-        this._addFilter(releaseFilter);
-        this._filterGrid();
-    },
-    _iterationSelected: function(comboBox, records) {
-        var iterationFilter = {
-            property: 'Iteration',
-            value: records[0].get("_ref")
-        };
-
-        this._addFilter(iterationFilter);
-        this._filterGrid();
-    },
-    _ownerSelected: function(comboBox, records) {
-        var ownerFilter = {
-            property: 'Owner',
-            value: records[0].get("_ref")
-        };
-
-        this._addFilter(ownerFilter);
-        this._filterGrid();
+            this._addFilter(filter);
+            this._filterGrid();
+        }
     },
     _resetFilters: function() {
         this._activeFilters = [this._activeFilters[0]];
@@ -65,6 +100,7 @@ Ext.define('TasksApp', {
         Ext.getCmp('releaseComboBox').reset();
     },
     launch: function launch() {
+        window.TEST = this;
         Rally.data.ModelFactory.getModel({
             type: 'Task',
             scope: this,
@@ -73,11 +109,11 @@ Ext.define('TasksApp', {
 
                 var me = this;
                 var clearFiltersStoreConfig = {
-                  listeners:{
-                   load:function(){
-                    me._clearFilterInputs();   
-                   }
-                  }
+                    listeners: {
+                        load: function() {
+                            me._clearFilterInputs();
+                        }
+                    }
                 };
                 var filterContainer = {
                     width: 1000,
@@ -107,7 +143,7 @@ Ext.define('TasksApp', {
                         },
                         storeConfig: clearFiltersStoreConfig,
                         listeners: {
-                            select: Ext.bind(this._releaseSelected, this)
+                            select: Ext.bind(this._optionSelected("Release"), this)
                         },
                         flex: 1
                     }, {
@@ -122,7 +158,7 @@ Ext.define('TasksApp', {
                         },
                         storeConfig: clearFiltersStoreConfig,
                         listeners: {
-                            select: Ext.bind(this._iterationSelected, this)
+                            select: Ext.bind(this._optionSelected("Iteration"), this)
                         },
                         flex: 1
                     }, {
@@ -133,7 +169,7 @@ Ext.define('TasksApp', {
                         project: '/project/' + project,
                         storeConfig: clearFiltersStoreConfig,
                         listeners: {
-                            select: Ext.bind(this._ownerSelected, this)
+                            select: Ext.bind(this._optionSelected("Owner"), this)
                         },
                         flex: 1
                     }]
@@ -154,6 +190,8 @@ Ext.define('TasksApp', {
                         filters: this._activeFilters
                     }
                 });
+
+                this._loadLastFilters();
             }
         });
     },

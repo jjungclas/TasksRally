@@ -7,9 +7,3 @@
 .filter-container .x-form-item-label {
     font-weight:bold;
 }
-.combobox-left-arrow {
-    display: none !important;
-}
-.combobox-right-arrow {
-    display: none !important;
-}

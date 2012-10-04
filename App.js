@@ -133,6 +133,7 @@ Ext.define('TasksApp', {
                     }, , {
                         id: 'releaseComboBox',
                         xtype: 'rallyreleasecombobox',
+                        plugins:[],
                         fieldLabel: "Release",
                         autoSelect: false,
                         labelWidth: 45,
@@ -149,6 +150,7 @@ Ext.define('TasksApp', {
                     }, {
                         id: 'iterationComboBox',
                         xtype: 'rallyiterationcombobox',
+                        plugins:[],
                         fieldLabel: "Iteration",
                         labelWidth: 45,
                         listConfig: {

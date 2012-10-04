@@ -131,7 +131,6 @@ Ext.define('TasksApp', {
         };
     },
     launch: function launch() {
-        window.TEST = this;
         Rally.data.ModelFactory.getModel({
             type: 'Task',
             scope: this,

@@ -12,28 +12,42 @@ Ext.define('TasksApp', {
         this.grid.store.filter(this._activeFilters);
         this._saveFilters();
     },
+    //    _loadLastFilters: function() {
+    //        Rally.data.PreferenceManager.load({
+    //            filterByUser: true,
+    //            appID: this.getContext().get('appID'),
+    //            success: function(settings) {
+    //                var filters = JSON.parse(settings['task.filters']);
+    //                this._activeFilters = filters;
+    //                this._filterGrid();
+    //                this._setFilterValuesOnComboBoxes();
+    //            },
+    //            scope: this
+    //        });
+    //    },
+    //    _saveFilters: function() {
+    //        var taskFilters = JSON.stringify(this._activeFilters);
+    //        Rally.data.PreferenceManager.update({
+    //            appID: this.getContext().get('appID'),
+    //            filterByUser: true,
+    //            settings: {
+    //                'task.filters': taskFilters
+    //            },
+    //            scope: this
+    //        });
+    //    },
     _loadLastFilters: function() {
-        Rally.data.PreferenceManager.load({
-            filterByUser: true,
-            appID: this.getContext().get('appID'),
-            success: function(settings) {
-                var filters = JSON.parse(settings['task.filters']);
-                this._activeFilters = filters;
-                this._filterGrid();
-                this._setFilterValuesOnComboBoxes();
-            },
-            scope: this
-        });
+        var filters = JSON.parse(this.settings['task.filters']);
+        this._activeFilters = filters;
+        this._filterGrid();
+        this._setFilterValuesOnComboBoxes();
     },
     _saveFilters: function() {
         var taskFilters = JSON.stringify(this._activeFilters);
-        Rally.data.PreferenceManager.update({
-            appID: this.getContext().get('appID'),
-            filterByUser: true,
+        this.updateSettingsValues({
             settings: {
                 'task.filters': taskFilters
-            },
-            scope: this
+            }
         });
     },
     _setFilterValuesOnComboBoxes: function() {
@@ -68,7 +82,7 @@ Ext.define('TasksApp', {
         //always add new filter
         this._activeFilters.push(filter);
     },
-    _removeFilterByProperty: function(property){
+    _removeFilterByProperty: function(property) {
         var existingIndex = -1;
         Ext.Array.forEach(this._activeFilters, function(existingFilter, index) {
             if (existingFilter.property === property) {
@@ -227,7 +241,10 @@ Ext.define('TasksApp', {
                     }
                 });
 
-                this._loadLastFilters();
+                var me = this;
+                setTimeout(function() {
+                    me._loadLastFilters();
+                }, 1000);
             }
         });
     },

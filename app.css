@@ -7,3 +7,12 @@
 .filter-container .x-form-item-label {
     font-weight:bold;
 }
+.clear-button {
+    background-color: transparent;
+    top: 2px !important;
+    background: url(img/x_alt_16x16.png) no-repeat left;
+    border: none;
+}
+.owner-container .clear-button {
+    margin-left: 5px !important;
+}

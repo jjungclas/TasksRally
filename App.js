@@ -63,9 +63,15 @@ Ext.define('TasksApp', {
         return matchedFilter;
     },
     _addFilter: function(filter) {
+        this._removeFilterByProperty(filter.property);
+
+        //always add new filter
+        this._activeFilters.push(filter);
+    },
+    _removeFilterByProperty: function(property){
         var existingIndex = -1;
         Ext.Array.forEach(this._activeFilters, function(existingFilter, index) {
-            if (existingFilter.property === filter.property) {
+            if (existingFilter.property === property) {
                 existingIndex = index;
             }
         });
@@ -74,9 +80,6 @@ Ext.define('TasksApp', {
             //remove existing filter
             this._activeFilters.splice(existingIndex, 1);
         }
-
-        //always add new filter
-        this._activeFilters.push(filter);
     },
     _optionSelected: function(propertyName) {
         return function(comboBox, records) {
@@ -98,6 +101,20 @@ Ext.define('TasksApp', {
         Ext.getCmp('ownerComboBox').reset();
         Ext.getCmp('iterationComboBox').reset();
         Ext.getCmp('releaseComboBox').reset();
+    },
+    _makeClearButton: function(fieldToClear, filterProperty) {
+        return {
+            xtype: 'button',
+            cls: 'clear-button',
+            text: '',
+            listeners: {
+                click: Ext.bind(function() {
+                    Ext.getCmp(fieldToClear).reset();
+                    this._removeFilterByProperty(filterProperty);
+                    this._filterGrid();
+                }, this)
+            }
+        };
     },
     launch: function launch() {
         window.TEST = this;
@@ -130,49 +147,66 @@ Ext.define('TasksApp', {
                             handler: Ext.bind(this._resetFilters, this)
                         }],
                         flex: 1
-                    }, , {
-                        id: 'releaseComboBox',
-                        xtype: 'rallyreleasecombobox',
-                        plugins:[],
-                        fieldLabel: "Release",
-                        autoSelect: false,
-                        labelWidth: 45,
-                        listConfig: {
-                            minWidth: 90,
-                            width: 90,
-                            itemTpl: new Ext.XTemplate('<div class="timebox-name<tpl if="isSelected"> timebox-item-selected</tpl>">{formattedName}</div>')
+                    }, {
+                        xtype: 'container',
+                        layout: 'hbox',
+                        items: [{
+                            id: 'releaseComboBox',
+                            xtype: 'rallyreleasecombobox',
+                            plugins: [],
+                            fieldLabel: "Release",
+                            autoSelect: false,
+                            labelWidth: 45,
+                            listConfig: {
+                                minWidth: 90,
+                                width: 90,
+                                itemTpl: new Ext.XTemplate('<div class="timebox-name<tpl if="isSelected"> timebox-item-selected</tpl>">{formattedName}</div>')
+                            },
+                            storeConfig: clearFiltersStoreConfig,
+                            listeners: {
+                                select: Ext.bind(this._optionSelected("Release"), this)
+                            }
                         },
-                        storeConfig: clearFiltersStoreConfig,
-                        listeners: {
-                            select: Ext.bind(this._optionSelected("Release"), this)
-                        },
+                        this._makeClearButton('releaseComboBox', 'Release')],
                         flex: 1
                     }, {
-                        id: 'iterationComboBox',
-                        xtype: 'rallyiterationcombobox',
-                        plugins:[],
-                        fieldLabel: "Iteration",
-                        labelWidth: 45,
-                        listConfig: {
-                            minWidth: 90,
-                            width: 90,
-                            itemTpl: new Ext.XTemplate('<div class="timebox-name<tpl if="isSelected"> timebox-item-selected</tpl>">{formattedName}</div>')
+                        xtype: 'container',
+                        layout: 'hbox',
+                        items: [{
+                            id: 'iterationComboBox',
+                            xtype: 'rallyiterationcombobox',
+                            plugins: [],
+                            fieldLabel: "Iteration",
+                            labelWidth: 45,
+                            listConfig: {
+                                minWidth: 90,
+                                width: 90,
+                                itemTpl: new Ext.XTemplate('<div class="timebox-name<tpl if="isSelected"> timebox-item-selected</tpl>">{formattedName}</div>')
+                            },
+                            storeConfig: clearFiltersStoreConfig,
+                            listeners: {
+                                select: Ext.bind(this._optionSelected("Iteration"), this)
+                            }
                         },
-                        storeConfig: clearFiltersStoreConfig,
-                        listeners: {
-                            select: Ext.bind(this._optionSelected("Iteration"), this)
-                        },
+                        this._makeClearButton('iterationComboBox', 'Iteration')],
                         flex: 1
                     }, {
-                        id: 'ownerComboBox',
-                        labelWidth: 45,
-                        xtype: 'rallyusercombobox',
-                        fieldLabel: 'Owner',
-                        project: '/project/' + project,
-                        storeConfig: clearFiltersStoreConfig,
-                        listeners: {
-                            select: Ext.bind(this._optionSelected("Owner"), this)
+                        xtype: 'container',
+                        cls: 'owner-container',
+                        layout: 'hbox',
+                        items: [{
+                            id: 'ownerComboBox',
+                            labelWidth: 45,
+                            clearCls: 'tes-test-test',
+                            xtype: 'rallyusercombobox',
+                            fieldLabel: 'Owner',
+                            project: '/project/' + project,
+                            storeConfig: clearFiltersStoreConfig,
+                            listeners: {
+                                select: Ext.bind(this._optionSelected("Owner"), this)
+                            }
                         },
+                        this._makeClearButton('ownerComboBox', 'Owner')],
                         flex: 1
                     }]
                 };
@@ -197,6 +231,4 @@ Ext.define('TasksApp', {
             }
         });
     },
-
-
 });
